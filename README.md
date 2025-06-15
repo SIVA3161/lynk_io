@@ -25,7 +25,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lynk_io: ^0.0.3 # latest
+  lynk_io: ^0.0.5 # latest
   flutter_dotenv: ^5.1.0
 ```
 

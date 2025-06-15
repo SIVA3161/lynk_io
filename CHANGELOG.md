@@ -13,3 +13,13 @@
 ## 0.0.3
 
 - Introduced Optional **auth interceptor** via `getToken()` callback
+
+## 0.0.4
+
+- dart format performed
+- documentation and examples added
+- followed Dart file conventions
+
+## 0.0.5
+
+- released on pub.dev along with changelog updates
