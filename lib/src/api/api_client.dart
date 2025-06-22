@@ -24,10 +24,29 @@ class ApiClient {
     Map<String, String>? headers,
     List<Interceptor>? interceptors,
   }) {
+    final defaultInterceptor = InterceptorsWrapper(
+      onRequest: (options, handler) {
+        AppLogger.info('Request: ${options.method} ${options.uri}');
+        AppLogger.info('Headers: ${options.headers}');
+        AppLogger.info('Query Params: ${options.queryParameters}');
+        AppLogger.info('Body: ${options.data}');
+        return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        AppLogger.info('Response: ${response.statusCode} ${response.requestOptions.uri}');
+        return handler.next(response);
+      },
+      onError: (DioException e, handler) {
+        AppLogger.error('Error: ${e.response?.statusCode} ${e.requestOptions.uri}');
+        AppLogger.error('Message: ${e.message}');
+        return handler.next(e);
+      },
+    );
+
     final dio = DioFactory.create(
       baseUrl: baseUrl,
       headers: headers,
-      interceptors: interceptors,
+      interceptors: interceptors ?? [defaultInterceptor],
     );
     return ApiClient._(dio);
   }
@@ -39,7 +58,7 @@ class ApiClient {
   /// [query] - Optional query parameters.
   Future<ApiResponse<T>> get<T>({
     required String endpoint,
-    required T Function(Map<String, dynamic>) fromJson,
+    required T Function(dynamic) fromJson,
     CancelToken? cancelToken,
     Map<String, dynamic>? query,
   }) async {
@@ -56,7 +75,7 @@ class ApiClient {
   Future<ApiResponse<T>> post<T>({
     required String endpoint,
     required dynamic data,
-    required T Function(Map<String, dynamic>) fromJson,
+    required T Function(dynamic) fromJson,
     CancelToken? cancelToken,
   }) async {
     try {
@@ -72,7 +91,7 @@ class ApiClient {
   Future<ApiResponse<T>> put<T>({
     required String endpoint,
     required dynamic data,
-    required T Function(Map<String, dynamic>) fromJson,
+    required T Function(dynamic) fromJson,
     CancelToken? cancelToken,
   }) async {
     try {
@@ -88,7 +107,7 @@ class ApiClient {
   Future<ApiResponse<T>> patch<T>({
     required String endpoint,
     required dynamic data,
-    required T Function(Map<String, dynamic>) fromJson,
+    required T Function(dynamic) fromJson,
     CancelToken? cancelToken,
   }) async {
     try {
@@ -103,7 +122,7 @@ class ApiClient {
   /// Sends a DELETE request.
   Future<ApiResponse<T>> delete<T>({
     required String endpoint,
-    required T Function(Map<String, dynamic>) fromJson,
+    required T Function(dynamic) fromJson,
     dynamic data,
     CancelToken? cancelToken,
   }) async {

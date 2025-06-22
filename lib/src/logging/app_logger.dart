@@ -30,5 +30,5 @@ class AppLogger {
   static void error(String message) => _logger.e(message);
 
   /// Logs a trace-level message.
-  static void trace(String message) => _logger.t(message);
+  // static void trace(String message) => _logger.t(message);
 }
