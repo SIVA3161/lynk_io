@@ -7,15 +7,15 @@ Designed to simplify API calls, error handling, and dependency setup — followi
 
 ## 🚀 Features
 
-- Generic GET, POST, PUT, PATCH, DELETE support
-- Clean separation of concerns using SOLID principles
-- Global error handling with structured exceptions
-- Built-in pluggable logger
-- Plug-and-play dependency injection via `get_it`
-- `.env` based API URL configuration (cross-platform)
-- Optional **auth interceptor** via `getToken()` callback
-- Multipart file upload / download utilities
-- Easily extensible and testable structure
+* Generic GET, POST, PUT, PATCH, DELETE support for single objects and lists
+* Clean separation of concerns using SOLID principles
+* Global error handling with structured exceptions
+* Built-in pluggable logger
+* Plug-and-play dependency injection via `get_it`
+* `.env` based API URL configuration (cross-platform)
+* Optional **auth interceptor** via `getToken()` callback
+* Multipart file upload / download utilities
+* Easily extensible and testable structure
 
 ---
 
@@ -25,7 +25,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lynk_io: ^0.0.5 # latest
+  lynk_io: ^0.0.7 # latest
   flutter_dotenv: ^5.1.0
 ```
 
@@ -100,31 +100,45 @@ Authorization: Bearer <your-token>
 Define a model class:
 
 ```dart
-class User {
+class ItemModel {
   final int id;
-  final String name;
+  final String title;
+  final bool completed;
 
-  User({required this.id, required this.name});
+  ItemModel({
+    required this.id,
+    required this.title,
+    required this.completed,
+  });
 
-  factory User.fromJson(Map<String, dynamic> json) =>
-      User(id: json['id'], name: json['name']);
+  factory ItemModel.fromJson(Map<String, dynamic> json) => ItemModel(
+        id: json['id'],
+        title: json['title'],
+        completed: json['completed'],
+      );
 }
 ```
 
-Fetch user data:
+Fetch a list of todo items:
 
 ```dart
 final api = locator<ApiClient>();
 
-final result = await api.get<User>(
-  endpoint: '/user/<user-id>',
-  fromJson: User.fromJson,
+final result = await api.get<List<ItemModel>>(
+  endpoint: '/todos',
+  fromJson: (json) {
+    final rawList = json as List;
+    return rawList.map((e) => ItemModel.fromJson(e)).toList();
+  },
 );
 
 if (result.isSuccess) {
-  AppLogger.log("User: ${result.data!.name}");
+  final items = result.data!;
+  for (final item in items) {
+    AppLogger.info('Item: ${item.title}');
+  }
 } else {
-  AppLogger.error("Error: ${result.error!.message}");
+  AppLogger.error('Error: ${result.error!.message}');
 }
 ```
 
@@ -133,13 +147,9 @@ if (result.isSuccess) {
 ## 📤 POST Request Example
 
 ```dart
-final result = await api.post<User>(
-  endpoint: '/users',
-  body: {
-    'name': 'Siva G',
-    'email': 'siva@example.com',
-  },
-  fromJson: User.fromJson,
+final result = await api.get<ItemModel>(
+  endpoint: '/todos/1',
+  fromJson: (json) => ItemModel.fromJson(json as Map<String, dynamic>),
 );
 ```
 
@@ -150,48 +160,59 @@ final result = await api.post<User>(
 ### ✅ `GET<T>()`
 
 ```dart
-api.get<T>(
-  endpoint: '/items',
-  fromJson: T.fromJson,
+final result = await api.get<List<ItemModel>>(
+  endpoint: '/todos',
+  fromJson: (json) {
+    final rawList = json as List;
+    return rawList.map((e) => ItemModel.fromJson(e)).toList();
+  },
 );
 ```
 
 ### ✅ `POST<T>()`
 
 ```dart
-api.post<T>(
-  endpoint: '/items',
-  body: {...},
-  fromJson: T.fromJson,
+final result = await api.post<ItemModel>(
+  endpoint: '/todos',
+  data: {
+    'title': 'New task',
+    'completed': false,
+  },
+  fromJson: (json) => ItemModel.fromJson(json as Map<String, dynamic>),
 );
 ```
 
 ### ✅ `PUT<T>()`
 
 ```dart
-api.put<T>(
-  endpoint: '/items/1',
-  body: {...},
-  fromJson: T.fromJson,
+final result = await api.put<ItemModel>(
+  endpoint: '/todos/1',
+  data: {
+    'title': 'Updated task',
+    'completed': true,
+  },
+  fromJson: (json) => ItemModel.fromJson(json as Map<String, dynamic>),
 );
 ```
 
 ### ✅ `PATCH<T>()`
 
 ```dart
-api.patch<T>(
-  endpoint: '/items/1',
-  body: {...},
-  fromJson: T.fromJson,
+final result = await api.patch<ItemModel>(
+  endpoint: '/todos/1',
+  data: {
+    'completed': true,
+  },
+  fromJson: (json) => ItemModel.fromJson(json as Map<String, dynamic>),
 );
 ```
 
 ### ✅ `DELETE<T>()`
 
 ```dart
-api.delete<T>(
-  endpoint: '/items/1',
-  fromJson: T.fromJson,
+final result = await api.delete<ItemModel>(
+  endpoint: '/todos/1',
+  fromJson: (json) => ItemModel.fromJson(json as Map<String, dynamic>),
 );
 ```
 
@@ -224,9 +245,9 @@ await api.files.downloadFile(
 
 ## 🧪 Testing & Extensibility
 
-- Easily mock the `ApiClient` for tests
-- Pass custom interceptors via `setupDependencies(...)`
-- Add more interceptors like caching, logging, etc.
+* Easily mock the `ApiClient` for tests
+* Pass custom interceptors via `setupDependencies(...)`
+* Add more interceptors like caching, logging, etc.
 
 ---
 

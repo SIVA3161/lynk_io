@@ -30,3 +30,7 @@
 - Updated the fromJson parameter to accept dynamic instead of strictly Map<String, dynamic> 
   for broader deserialization support.
 - Introduced default interceptors that are applied only when the app layer does not provide custom interceptors.
+
+## 0.0.7
+
+- updated readme and example files for better documentation

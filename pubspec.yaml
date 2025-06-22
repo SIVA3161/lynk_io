@@ -1,6 +1,6 @@
 name: lynk_io
 description: "A lightweight and modular Flutter networking library for clean API communication using Dio."
-version: 0.0.6
+version: 0.0.7
 homepage: https://github.com/SIVA3161/lynk_io
 
 environment:

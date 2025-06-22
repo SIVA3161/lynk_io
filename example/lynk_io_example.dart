@@ -2,16 +2,6 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lynk_io/lynk_io.dart';
 
-class User {
-  final int id;
-  final String name;
-
-  User({required this.id, required this.name});
-
-  factory User.fromJson(Map<String, dynamic> json) =>
-      User(id: json['id'], name: json['name']);
-}
-
 Future<void> main() async {
   await dotenv.load();
   final baseUrl = dotenv.env['API_BASE_URL'] ?? '';
@@ -20,14 +10,42 @@ Future<void> main() async {
 
   final api = locator<ApiClient>();
 
-  final response = await api.get<User>(
-    endpoint: '/users/1',
-    fromJson: User.fromJson,
-  );
+  try {
+    final response = await api.get<List<ItemModel>>(
+      endpoint: '/todos',
+      fromJson: (json) {
+        final rawList = json as List;
+        return rawList.map((e) => ItemModel.fromJson(e)).toList();
+      },
+    );
 
-  if (response.isSuccess) {
-    print('User Name: ${response.data?.name}');
-  } else {
-    print('Error: ${response.error?.message}');
+    if (response.isSuccess && response.data != null) {
+      for (final item in response.data!) {
+        print('Todo: ${item.title} - Completed: ${item.completed}');
+      }
+    } else {
+      print('API Error: ${response.error?.message ?? 'Unknown error'}');
+    }
+  } catch (e) {
+    print('Exception occurred: $e');
   }
+}
+
+
+class ItemModel {
+  final int id;
+  final String title;
+  final bool completed;
+
+  ItemModel({
+    required this.id,
+    required this.title,
+    required this.completed,
+  });
+
+  factory ItemModel.fromJson(Map<String, dynamic> json) => ItemModel(
+    id: json['id'] as int,
+    title: json['title'] as String,
+    completed: json['completed'] as bool,
+  );
 }
